@@ -20,6 +20,10 @@ def tune_random_forest(X_train, y_train, X_test=None, y_test=None, cv=3):
         "n_estimators": [100, 200],
         "max_depth": [10, 15, None],
         "min_samples_split": [2, 5],
+        # Lecture 10: 리프 노드 최소 샘플 수 — 과적합 방지에 직접적으로 작용
+        "min_samples_leaf": [1, 5],
+        # Lecture 10: 각 분할에서 고려할 특징 수 — RF가 DT보다 강한 핵심 이유
+        "max_features": ["sqrt", "log2"],
     }
 
     base = RandomForestClassifier(random_state=RANDOM_STATE, n_jobs=-1)

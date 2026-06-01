@@ -73,31 +73,39 @@ def preprocess_data(file_path, target_col="target", test_size=0.2, random_state=
     # 2) ★ 식별자 컬럼을 '먼저' 제거한다 (수치형 선택보다 앞서야 IP/Port가 새지 않는다)
     df = _drop_identifier_columns(df)
 
-    # 3) 수치형 특성만 선택 (식별자를 이미 지운 뒤이므로 안전)
+    # 3) 범주형 컬럼 인코딩 (Highest Layer, Transport Layer 등)
+    #    수치형 선택 전에 처리해야 select_dtypes에서 포함된다.
+    cat_cols = [c for c in df.select_dtypes(include="object").columns if c != target_col]
+    if cat_cols:
+        print(f"[범주형 인코딩] LabelEncoder 적용: {cat_cols}")
+        for col in cat_cols:
+            df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+
+    # 4) 수치형 특성만 선택 (식별자를 이미 지운 뒤이므로 안전)
     feature_df = df.select_dtypes(include=[np.number]).copy()
     feature_df[target_col] = df[target_col]
 
-    # 4) 무한대(inf) -> NaN -> 결측 행 제거
+    # 5) 무한대(inf) -> NaN -> 결측 행 제거
     feature_df.replace([np.inf, -np.inf], np.nan, inplace=True)
     feature_df.dropna(inplace=True)
 
-    # 5) 레이블 인코딩 (정상/공격 등 -> 0,1,...)
+    # 6) 레이블 인코딩 (정상/공격 등 -> 0,1,...)
     le = LabelEncoder()
     feature_df[target_col] = le.fit_transform(feature_df[target_col])
     print(f"인코딩 완료: {list(le.classes_)} -> {np.unique(feature_df[target_col])}")
 
-    # 6) 특성/레이블 분리
+    # 7) 특성/레이블 분리
     X = feature_df.drop(columns=[target_col])
     y = feature_df[target_col]
     feature_names = list(X.columns)
     print(f"학습에 사용하는 특성 수: {len(feature_names)}개")
 
-    # 7) 분할 (재현성 random_state=42, 클래스 비율 유지 stratify=y)
+    # 8) 분할 (재현성 random_state=42, 클래스 비율 유지 stratify=y)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
     )
 
-    # 8) 스케일링 — train에만 fit, test는 transform만 (누수 방지의 정석)
+    # 9) 스케일링 — train에만 fit, test는 transform만 (누수 방지의 정석)
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)

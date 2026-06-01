@@ -20,7 +20,7 @@ MODEL_SAVE_PATH = "final_model.pkl"
 RESULT_DIR = "result"
 
 # 튜닝(GridSearchCV)을 실행할지 여부. 데이터가 크면 시간이 오래 걸려 기본 False.
-RUN_TUNING = False
+RUN_TUNING = True
 
 
 def main():
