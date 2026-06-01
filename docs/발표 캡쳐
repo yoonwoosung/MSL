@@ -1,0 +1,244 @@
+슬라이드 1: 표지
+캡처 없음 — PPT에 주제·팀명 직접 작성. (선택적으로 result/confusion_matrix.png 1장을 배경 썸네일로)
+
+슬라이드 2: 문제 제기 (왜 ML로 DDoS를 탐지하는가)
+캡처 ①: 파이프라인 진입점 docstring
+
+종류: 📝 코드 캡처
+정확한 위치: main.py 1~9줄 (상단 docstring + 흐름 주석)
+캡처 방법: VS Code에서 main.py 열고 최상단
+들어갈 이유: "이 프로젝트가 무슨 흐름으로 문제를 푸는지" 한눈에
+추천 표시: 흐름 키워드(전처리→비교→학습→평가)에 강조색 밑줄
+슬라이드 3: 데이터 소개 (85만 행, 이진, 균형)
+캡처 ①: 데이터 크기·클래스 분포
+
+종류: 💻 터미널 출력 캡처
+정확한 위치: 터미널
+캡처 방법:
+
+python -c "import pandas as pd; df=pd.read_csv('data/ddos_dataset.csv'); print('shape:', df.shape); print(df['target'].value_counts())"
+들어갈 이유: 85만 행 + 정상/공격 비율(약 53:47, 거의 균형)의 근거
+추천 표시: 클래스 개수 두 줄에 박스 + "거의 균형" 주석
+캡처 ②: 클래스 분포 막대그래프 (데이터 없으면 대체)
+
+종류: 🖼️ 결과 이미지 (직접 생성)
+캡처 방법: df['target'].value_counts().plot(kind='bar') 후 저장, 또는 위 수치를 PPT 차트로
+들어갈 이유: 균형 데이터임을 시각적으로
+추천 표시: 두 막대 높이 비슷함을 화살표로 강조
+슬라이드 4: 전공 적합도
+캡처 없음(개념 슬라이드). 굳이 넣는다면:
+
+캡처 ①: 드롭/사용 특성이 정보통신 데이터임을 보여주는 ID_COLUMNS
+
+종류: 📝 코드 캡처
+정확한 위치: modules/preprocessing.py 27~35줄 (ID_COLUMNS)
+캡처 방법: 해당 파일 열기
+들어갈 이유: IP·Port·Flow ID·Timestamp 등 네트워크 도메인 용어가 그대로 등장 → 전공 연계 증거
+추천 표시: 네트워크 식별자 단어에 색 강조
+슬라이드 5: EDA (컬럼·결측·분포)
+캡처 ①: 컬럼 목록 + 결측/분포 요약
+
+종류: 💻 터미널 출력 캡처
+캡처 방법:
+
+python -c "import pandas as pd; df=pd.read_csv('data/ddos_dataset.csv'); print('컬럼:', df.columns.tolist()); print('결측:', df.isna().sum().sum()); print(df.describe().T[['mean','std','min','max']])"
+들어갈 이유: 어떤 컬럼이 있고(미확인 feature 2개 확정), 결측·스케일 차이가 있는지 → 전처리 필요성 근거
+추천 표시: 식별자 컬럼(Source IP 등)에 빨간 박스(=뒤에서 지울 대상 예고)
+캡처 ②: 전처리 실행 로그(특성 수 확인)
+
+종류: 💻 터미널 출력 캡처
+캡처 방법: python main.py 실행 후 아래 부분
+
+학습에 사용하는 특성 수: 4개
+전처리 완료: 학습 (682068, 4), 테스트 (170517, 4)
+들어갈 이유: 최종적으로 4개 특성만 사용 → 차원의 저주 없음(PCA 불필요) 연결
+추천 표시: "4개"에 강조색
+슬라이드 6: 전처리 (식별자 drop = 누수 차단) ★핵심★ (최대 3개)
+캡처 ①: 식별자 제거 함수
+
+종류: 📝 코드 캡처
+정확한 위치: modules/preprocessing.py 3848줄 (_drop_identifier_columns()) + 2735줄(ID_COLUMNS)
+캡처 방법: 두 블록이 한 화면에 보이게 스크롤(또는 2컷)
+들어갈 이유: 발표의 심장 — IP/포트를 명시적으로 지우는 누수 차단 로직
+추천 표시: to_drop 라인과 ID_COLUMNS에 굵은 박스
+캡처 ②: 스케일러 누수 방지 (fit/transform 분리)
+
+종류: 📝 코드 캡처
+정확한 위치: modules/preprocessing.py 108~111줄 (fit_transform(X_train) / transform(X_test))
+캡처 방법: 해당 2~4줄만 확대
+들어갈 이유: 테스트 정보가 학습에 새지 않게 하는 정석
+추천 표시: fit_transform vs transform 차이에 대비 화살표
+캡처 ③: 처리 순서 + 누수 방지 로그
+
+종류: 💻 터미널 출력 캡처 (코드 대체 가능)
+캡처 방법: python main.py 실행 후
+
+[누수 방지] 식별자 컬럼 제거: ['Source IP', 'Dest IP', 'Source Port', 'Dest Port']
+[범주형 인코딩] LabelEncoder 적용: ['Highest Layer', 'Transport Layer']
+들어갈 이유: 식별자가 실제로 제거됐다는 실행 증거
+추천 표시: 제거된 컬럼 리스트에 빨간 박스
+슬라이드 7: 모델 후보 (LR/DT/RF)
+캡처 ①: 모델 후보 정의
+
+종류: 📝 코드 캡처
+정확한 위치: modules/evaluate.py 39~55줄 (_build_candidates())
+캡처 방법: 함수 전체
+들어갈 이유: 3개 모델 + 각 선택 이유 주석(로그손실/과적합/배깅)이 한 곳에
+추천 표시: 각 모델명 + 주석 키워드(로그 손실, 분산, bagging)에 색 강조
+슬라이드 8: 코드 실행 흐름
+캡처 ①: main() 실행 순서
+
+종류: 📝 코드 캡처
+정확한 위치: main.py 26줄~끝 (def main() 본문: 전처리→compare_models→학습/튜닝→evaluate)
+캡처 방법: main 함수 전체
+들어갈 이유: 단계별 함수 호출 순서를 코드로 증명
+추천 표시: 단계마다 번호 배지(①전처리 ②비교 ③학습 ④평가)
+캡처 ②: 설정 변수
+
+종류: 📝 코드 캡처
+정확한 위치: main.py 16~23줄 (DATA_FILE, TARGET_COL, MODEL_SAVE_PATH, RESULT_DIR, RUN_TUNING)
+들어갈 이유: 데이터 경로·타깃·모델명·튜닝 토글을 한눈에
+추천 표시: final_model.pkl, RUN_TUNING에 강조
+슬라이드 9: 모델 비교 결과
+캡처 ①: 모델별 train/test 로그
+
+종류: 💻 터미널 출력 캡처
+캡처 방법: python main.py 실행 중 출력
+
+[LogisticRegression] train=0.9895 / test=0.9895 (gap=-0.0000)
+[DecisionTree]       train=0.9984 / test=0.9980 (gap=0.0004)
+[RandomForest]       train=0.9984 / test=0.9979 (gap=0.0006)
+들어갈 이유: 같은 조건 공정 비교 + gap이 작음(과적합 아님)
+추천 표시: RF 줄에 박스, gap 값에 강조
+캡처 ②: 비교표 파일
+
+종류: 🖼️ 결과 이미지/파일 (이미 생성됨)
+정확한 위치: result/model_comparison.csv
+캡처 방법:
+
+python -c "import pandas as pd; print(pd.read_csv('result/model_comparison.csv').to_string(index=False))"
+들어갈 이유: precision/recall/f1까지 포함한 정식 비교표
+추천 표시: f1 열 강조
+슬라이드 10: 최종 모델 선택 (RF 근거)
+캡처 ①: RF 선택 이유 docstring
+
+종류: 📝 코드 캡처
+정확한 위치: modules/train.py 4~13줄 (docstring "왜 RandomForest인가")
+캡처 방법: 파일 상단
+들어갈 이유: 비선형·스케일 무관·배깅·설명력이라는 선택 근거를 코드 문서로 제시
+추천 표시: bagging / feature_importances_ 키워드 강조
+캡처 ②: 학습·저장 함수
+
+종류: 📝 코드 캡처
+정확한 위치: modules/train.py 22~38줄 (train_rf_model, save_model)
+들어갈 이유: 최종 모델이 final_model.pkl로 저장됨을 증명
+추천 표시: RandomForestClassifier, final_model.pkl에 박스
+슬라이드 11: 성능 평가 (99.8%, gap 0.0005) ★ (최대 3개)
+캡처 ①: metrics.txt 전체
+
+종류: 🖼️ 결과 파일 (이미 생성됨)
+정확한 위치: result/metrics.txt
+캡처 방법: VS Code에서 파일 열기 (또는 type result\metrics.txt)
+들어갈 이유: Train 0.9984 / Test 0.9979 / gap 0.0005 + P/R/F1 + 클래스별 리포트 전부
+추천 표시: Overfit gap 0.0005, 공격(1) Recall 0.9965에 박스
+캡처 ②: 혼동행렬 (누수 수정 후)
+
+종류: 🖼️ 결과 이미지 (이미 생성됨)
+정확한 위치: result/confusion_matrix.png
+캡처 방법: 파일 그대로 삽입
+들어갈 이유: 오분류가 거의 없음을 시각적으로
+추천 표시: 대각선(정답) 강조
+캡처 ③: 평가 코드(지표 계산부)
+
+종류: 📝 코드 캡처
+정확한 위치: modules/evaluate.py 98~119줄 (metrics 계산/저장 블록)
+들어갈 이유: 정확도뿐 아니라 Precision/Recall/F1을 함께 계산함을 증명
+추천 표시: recall_score, f1_score 호출에 강조
+슬라이드 12: Feature Importance ★ Before/After ★ (최대 3개)
+캡처 ①: Before — 누수 제거 전 중요도 (Source IP 1위)
+
+종류: 🖼️ 결과 이미지 (이미 존재)
+정확한 위치: 루트 feature_importance_kaggle.png
+캡처 방법: 파일 그대로 삽입(좌측 배치)
+들어갈 이유: 모델이 IP를 암기했다는 직접 증거
+추천 표시: 최상단 Source IP 막대에 빨간 박스 + "IP 암기!"
+캡처 ②: After — 누수 제거 후 중요도 (행동 특성 1위)
+
+종류: 🖼️ 결과 이미지 (이미 생성됨)
+정확한 위치: result/feature_importance.png
+캡처 방법: 파일 그대로 삽입(우측 배치, ①과 나란히)
+들어갈 이유: 판단 근거가 행동 특성으로 이동 = 누수 해결의 핵심 증거
+추천 표시: 상위 막대에 초록 박스 + "행동 학습!"
+캡처 ③: 중요도 추출 코드
+
+종류: 📝 코드 캡처
+정확한 위치: modules/evaluate.py 136~147줄 (feature_importances_ Top 15)
+들어갈 이유: 그림이 어떻게 만들어지는지 근거 제시
+추천 표시: model.feature_importances_에 강조
+슬라이드 13: 튜닝 한계
+캡처 ①: 탐색 파라미터 정의
+
+종류: 📝 코드 캡처
+정확한 위치: modules/tune.py 19~27줄 (param_grid, 5개 파라미터)
+캡처 방법: param_grid 블록
+들어갈 이유: Lecture 10 기반 파라미터를 실제로 탐색했음
+추천 표시: max_features, min_samples_leaf 주석에 강조
+캡처 ②: 튜닝 결과(차이 0.0001)
+
+종류: 💻 터미널 출력 캡처
+캡처 방법: python experiments/extreme_tuning.py 실행 후
+
+[기본값 Test F1] 0.9979
+[튜닝 후 Test F1] 0.9980
+[차이] 0.0001
+[최악 조합] n_estimators=10, max_depth=2 / CV F1: 0.9632
+들어갈 이유: "튜닝을 소홀히 한 게 아니라, 광범위 탐색으로 기본값이 최적임을 검증"
+추천 표시: [차이] 0.0001에 박스
+슬라이드 14: 개선 방향·결론
+캡처 ①: random_state=42 통일 (재현성)
+
+종류: 📝 코드 캡처
+정확한 위치: modules/train.py 19줄 / modules/evaluate.py 36줄 / modules/tune.py (RANDOM_STATE 선언부, 약 13줄) — 한 컷에 2개만 담아도 충분
+캡처 방법: 각 파일의 RANDOM_STATE = 42 라인
+들어갈 이유: 누구나 같은 결과 → 신뢰성
+추천 표시: 42에 동일 강조색
+캡처 ②: 모델 저장 로그
+
+종류: 💻 터미널 출력 캡처
+캡처 방법: python main.py 실행 후 모델 저장 완료: final_model.pkl
+들어갈 이유: 제출 규격 산출물 생성 증명
+추천 표시: final_model.pkl에 박스
+📌 캡처 우선순위 표
+슬라이드	캡처	종류	위치	우선순위
+6	식별자 제거 함수	📝	preprocessing.py 3848 (+2735)	★필수
+6	fit/transform 분리	📝	preprocessing.py 108~111	★필수
+12	Before 중요도	🖼️	feature_importance_kaggle.png	★필수
+12	After 중요도	🖼️	result/feature_importance.png	★필수
+11	metrics.txt	🖼️	result/metrics.txt	★필수
+11	혼동행렬 After	🖼️	result/confusion_matrix.png	★필수
+9	모델 비교 로그	💻	main.py 실행 출력	★필수
+3	크기·클래스 분포	💻	value_counts	★필수
+6	누수 방지 로그	💻	main.py 실행 출력	권장
+7	모델 후보 정의	📝	evaluate.py 39~55	권장
+10	RF 선택 docstring	📝	train.py 4~13	권장
+13	튜닝 차이 0.0001	💻	extreme_tuning.py 출력	권장
+13	param_grid	📝	tune.py 19~27	권장
+5	컬럼·결측 요약	💻	describe/columns	권장
+8	main() 흐름	📝	main.py 26~끝	권장
+11	지표 계산 코드	📝	evaluate.py 98~119	선택
+12	중요도 추출 코드	📝	evaluate.py 136~147	선택
+10	학습·저장 함수	📝	train.py 22~38	선택
+8	설정 변수	📝	main.py 16~23	선택
+14	random_state=42	📝	train/evaluate/tune	선택
+14	모델 저장 로그	💻	main.py 출력	선택
+2	main docstring	📝	main.py 1~9	선택
+4	ID_COLUMNS	📝	preprocessing.py 27~35	선택
+5	특성 수 로그	💻	main.py 출력	선택
+3	분포 막대	🖼️	직접 생성	선택
+캡처 실행 요약 (한 번에 준비하는 법)
+데이터 배치 → data/ddos_dataset.csv
+python main.py 실행 → 슬라이드 3·5·6·9·11·14의 💻 출력 + result/ 갱신
+python experiments/extreme_tuning.py 실행 → 슬라이드 13 💻 출력
+result/와 루트 *_kaggle.png의 🖼️ 이미지 → 슬라이드 11·12에 바로 삽입
+📝 코드 캡처는 VS Code에서 위 줄 번호로 이동해 캡처
+기존 docs/capture_guide.md와 거의 일치하며, 이 답변은 줄 번호·우선순위·표시 방법을 더 정밀하게 보강한 버전입니다. 원하시면 이 내용을 capture_guide.md에 반영(덮어쓰기/병합)해 드릴 수 있습니다 — 말씀하시면 그때 파일을 수정하겠습니다.
