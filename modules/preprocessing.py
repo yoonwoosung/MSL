@@ -53,8 +53,8 @@ def preprocess_data(file_path, target_col="target", test_size=0.2, random_state=
     반환: X_train, X_test, y_train, y_test, feature_names, class_names
 
     처리 순서(누수 방지 관점에서 중요):
-      식별자 drop  ->  수치형 선택  ->  inf/결측치 처리  ->  레이블 인코딩
-      ->  train/test 분할(stratify)  ->  스케일러는 train에만 fit
+      식별자 drop  ->  범주형 인코딩  ->  수치형 선택  ->  inf/결측치 처리
+      ->  레이블 인코딩  ->  train/test 분할(stratify)  ->  스케일러는 train에만 fit
     """
     print("--- 데이터 로딩 및 전처리 시작 ---")
     df = pd.read_csv(file_path)
