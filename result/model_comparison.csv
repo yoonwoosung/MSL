@@ -1,4 +1,0 @@
-﻿model,train_accuracy,test_accuracy,overfit_gap,precision,recall,f1
-DecisionTree,0.9984,0.998,0.0004,0.998,0.998,0.998
-RandomForest,0.9984,0.9979,0.0006,0.9979,0.9979,0.9979
-LogisticRegression,0.9895,0.9895,-0.0,0.9897,0.9895,0.9895

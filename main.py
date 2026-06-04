@@ -3,18 +3,26 @@ DDoS 탐지 파이프라인 진입점 (main.py)
 
 흐름: 전처리(누수 차단) -> 모델 비교 -> (선택)튜닝 -> 최종 학습/저장 -> 평가/시각화
 모든 단계 random_state=42 고정으로 재현 가능. 결과물은 result/ 폴더에 저장된다.
+
+모듈 구성(제출 양식):
+  - modules/function1.py : 전처리
+  - modules/function2.py : 학습 + 평가/시각화 + 튜닝
 """
 
 import os
 import joblib
 
-from modules.preprocessing import preprocess_data
-from modules.train import train_rf_model, save_model
-from modules.evaluate import compare_models, evaluate_and_visualize
-from modules.tune import tune_random_forest
+from modules.function1 import preprocess_data
+from modules.function2 import (
+    train_rf_model,
+    save_model,
+    compare_models,
+    evaluate_and_visualize,
+    tune_random_forest,
+)
 
-# 실제 CSV 경로와 타깃 컬럼명 (코드/데이터 확인 결과 타깃 컬럼명은 'target')
-DATA_FILE = "data/ddos_dataset.csv"
+# 실제 CSV 경로와 타깃 컬럼명 (타깃 컬럼명은 'target')
+DATA_FILE = "data/data.csv"
 TARGET_COL = "target"
 MODEL_SAVE_PATH = "final_model.pkl"
 RESULT_DIR = "result"
