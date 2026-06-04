@@ -32,7 +32,10 @@ def tune_random_forest(X_train, y_train, X_test=None, y_test=None, cv=3):
         param_grid=param_grid,
         scoring="f1_weighted",  # 불균형 고려해 f1 기준
         cv=cv,
-        n_jobs=-1,
+        # Windows/Python 3.13에서 loky(프로세스 병렬) resource_tracker 버그를 피하기 위해
+        # GridSearchCV는 단일 프로세스로 실행. 내부 RandomForest는 n_jobs=-1(스레드)로
+        # 각 fit이 모든 코어를 사용하므로 속도 저하는 최소이며 결과는 동일하다.
+        n_jobs=1,
         verbose=1,
     )
     print("--- GridSearchCV 튜닝 시작 ---")
